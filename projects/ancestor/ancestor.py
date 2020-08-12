@@ -47,7 +47,7 @@ def earliest_ancestor(ancestors, starting_node):
 
     # Create an empty queue
     q = Queue()
-    # Enque a path to the starting node
+    # Enqueue a path to the starting node
     q.enqueue([starting_node])
     # Create a set to store visited paths
     visited = set()
@@ -65,7 +65,7 @@ def earliest_ancestor(ancestors, starting_node):
         if v not in visited:
             # add it to visited
             visited.add(v)
-            # While the vertex has a parent
+            # If the vertex has a parent
             if v in d:
                 # Add a path to its parents to the queue
                 for parent in d[v]:
