@@ -87,7 +87,7 @@ class Graph:
                 for neighbor in self.get_neighbors(v):
                     q.push(neighbor)
 
-    def dft_recursive(self, starting_vertex, visited = set()):
+    def dft_recursive(self, starting_vertex, visited = None):
         """
         Print each vertex in depth-first order
         beginning from starting_vertex.
@@ -97,9 +97,12 @@ class Graph:
         Visited default is a blank set, as vertices are visited and added, we will 
         pass the updated visited set to the next call
         """
+        # When python default is immutable, it is processed weirdly
+        # use this type of format to get initialize a set for the first time
+        if visited is None:
+            visited = set()
 
         vertex = starting_vertex
-        visited = visited
 
         # if we have visited it, skip over it
         if vertex in visited:
@@ -210,24 +213,28 @@ class Graph:
             # Grab the last vertex from the PATH
             v = path[-1]
 
+            # CHECK IF IT'S THE TARGET
+            if v == destination_vertex:
+                # IF SO, RETURN PATH
+                return path
+
             # If that vertex has not been visited...
             if v not in visited:
-                # CHECK IF IT'S THE TARGET
-                if v == destination_vertex:
-                    # IF SO, RETURN PATH
-                    return path
-
-                # If it isn't the target
                 # Mark it as visited...
                 visited.add(v)
                 # Then add A PATH TO its neighbors to the back of the queue -recursive call
                 for neighbor in self.get_neighbors(v):
-                    # Copy the path
+                    # Copy the path - each recursive call needs a new copy of the path
+                    # The previous call is still utilizing the previous version of the path object
                     next_path = path[:]
                     # append the neighbor vertex to it
                     next_path.append(neighbor)
                     # Recursive function with updated path and visited set
                     found = inner_dfs(next_path)
+
+                    # We need a way to return the found path from all the recursive calls
+                    # Check to see if a path or if None is passed back
+                    # Continues to get passed along to the original call which will return the path
 
                     # If the destination vertex is found, return the path
                     if found:
