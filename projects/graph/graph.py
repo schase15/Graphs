@@ -109,7 +109,7 @@ class Graph:
             return
         # Otherwise, print, add it to visited, recursive call on each neighbor
         else:
-            # Print
+            # Print - perform what you need to do at each vertex
             print(vertex)
             # Add vertex to visited
             visited.add(vertex)
