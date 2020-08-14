@@ -169,8 +169,16 @@ def bfs(player, visited, traversal_graph, traversal_path, world):
             # If poss_directions isn't empty, that is the room we need to move to
             if len(poss_directions) > 0:
                 print('move to unexplored room')
+
+
                 # Add path to the traversal path
-                traversal_path.append(path)
+                # traversal_path.append(path)
+                cardinal_dir = convert_to_cardinal(path, traversal_graph)
+
+                # append cardinal directions to traversal_path
+                for item in cardinal_dir:
+                    traversal_path.append(item)
+
                 # Move the player to that room
                 player.current_room = world.rooms[v]
                 print(f'Moved to: room {player.current_room.id}')
@@ -190,3 +198,20 @@ def bfs(player, visited, traversal_graph, traversal_path, world):
                 next_path.append(neighbor)
                 # add the next path to the end of the queue
                 q.enqueue(next_path)
+
+def convert_to_cardinal(path, traversal_graph):
+    cardinal_path = []
+
+    for i in range(len(path) -1):
+        d = traversal_graph[path[i]]
+
+        for key, value in d.items():
+            if value == path[i+1]:
+                cardinal_path.append(key)
+
+    return cardinal_path
+
+
+
+
+
