@@ -10,10 +10,10 @@ world = World()
 
 
 # You may uncomment the smaller graphs for development and testing purposes.
-map_file = "maps/test_line.txt"
+# map_file = "maps/test_line.txt"
 # map_file = "maps/test_cross.txt"
 # map_file = "maps/test_loop.txt"
-# map_file = "maps/test_loop_fork.txt"
+map_file = "maps/test_loop_fork.txt"
 # map_file = "maps/main_maze.txt"
 
 # Loads the map into a dictionary
@@ -30,12 +30,12 @@ player = Player(world.starting_room)
 ################################ MY CODE #############################################
 
 # Import helper functions
-from util import move_player, update_poss_directions
+from util import *
 
 # Build an empty graph dictionary
 traversal_graph = {}
 # 500 rooms, 0-499
-for room_id in range(3):
+for room_id in range(len(world.rooms)):
     traversal_graph[room_id] = {'n': '?', 's': '?', 'w': '?', 'e': '?'}
 
 # Fill this out with directions to walk
@@ -49,41 +49,25 @@ visited = set()
 
 
 ## testing functions and traversal ##
+move_player(player, visited, traversal_graph, traversal_path, world)
 
-
-move_player(player, visited, traversal_graph, traversal_path)
 
 print(traversal_graph)
 print(traversal_path)
+print(len(traversal_path))
 print(visited)
 print(player.current_room.id)
 print('_________________________')
 
-# move_player(player, visited, traversal_graph, traversal_path)
+'''
+Everything is working up to here
+It traverses the map and visits every node and populates the traversal graph properly
+    I checked and the output is right for all of the smaller maps
 
-# print(traversal_graph)
-# print(traversal_path)
-# print(visited)
-# print(player.current_room.id)
-# print('_________________________')
+Just need to convert the path from the BFS output to cardinal directions
+'''
 
-# x = move_player(player, visited, traversal_graph, traversal_path)
-# print(traversal_graph)
-# print(traversal_path)
-# print(visited)
-# print(player.current_room.id)
-# print('_________________________')
-
-
-
-# if x == 1:
-    # bfs functionality
-    # If we got here, that means in our traverse we have hit a room where all exists have
-    # been explored
-    # We need to move to the nearest room with an unexplored exit and continue to call move_player
-
-
-
+# breakpoint()
 
 
 ############################# TESTING ################################################

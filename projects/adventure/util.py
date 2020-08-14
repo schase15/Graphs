@@ -27,7 +27,7 @@ def update_poss_directions(player, traversal_graph):
 
 # Function will be called to move the player
 # NEED TO UPDATE TO INCLUDE A BREAK THAT WILL CALL BFS WHEN WE THERE ARE NO UNEXPLORED EXITS
-def move_player(player, visited, traversal_graph, traversal_path):
+def move_player(player, visited, traversal_graph, traversal_path, world):
     '''
     Pass in player
     Check to see if the new room has been visited
@@ -65,8 +65,9 @@ def move_player(player, visited, traversal_graph, traversal_path):
     # Check to see if there are possible directions to move in
     # If there aren't, call BFS
     if len(poss_directions) == 0:
-        # To work with in production
-        return print('No where to go')
+        # Call BFS
+        print('No where to go')
+        return bfs(player, visited, traversal_graph, traversal_path, world)
     
     else:
         # Save direction choice
@@ -94,5 +95,98 @@ def move_player(player, visited, traversal_graph, traversal_path):
         traversal_path.append(move_to)
 
         # Recall the method
-        move_player(player, visited, traversal_graph, traversal_path)
+        move_player(player, visited, traversal_graph, traversal_path, world)
 
+# To be used in BFS function
+# Note: This Queue class is sub-optimal. Why?
+class Queue():
+    def __init__(self):
+        self.queue = []
+    def enqueue(self, value):
+        self.queue.append(value)
+    def dequeue(self):
+        if self.size() > 0:
+            return self.queue.pop(0)
+        else:
+            return None
+    def size(self):
+        return len(self.queue)
+
+# Helper function to get neighbors
+def get_neighbors(room_id, world):
+    '''
+    Takes in one room_id
+    Returns neighbors room_id
+        Neighbors are the rooms connected in each cardinal direction
+    '''
+    # Empty neighbors list
+    neighbors = []
+    # Grab the room 
+    current_room = world.rooms[room_id]
+    # Grab exits
+    exits = current_room.get_exits()
+    # Grab room_id's in each direction and add to neighbors list
+    for direction in exits:
+        neighbors.append(current_room.get_room_in_direction(direction).id)
+    
+    return neighbors
+
+# Function to find the closest room with an enxplored exit
+def bfs(player, visited, traversal_graph, traversal_path, world):
+    '''
+    Takes in all variables (update to use global variables)
+    Finds the closest room with an unexplored exit
+        Moves the player there
+        Adds the path to get there to the traversal path
+    Calls the move_player function at the end to explore the new unexplored exit
+    '''
+    # Starting point is the dead-end room the player is currently in
+    starting_vertex = player.current_room.id
+
+    # Create an empty queue
+    q = Queue()
+    # and enqueue A PATH TO the starting room ID
+    q.enqueue([starting_vertex])
+    # Create a Set to store visited room's
+    visited_bfs = set()
+
+    # While the queue is not empty...
+    while q.size() > 0:
+        # Dequeue the first PATH
+        path = q.dequeue()
+        # Grab the last room from the PATH
+        v = path[-1]
+
+        # If that room has not been visited...
+        if v not in visited_bfs:
+
+            # Find if the room has an unexplored exit
+            poss_directions = []
+            for key, value in traversal_graph[v].items():
+                if value == '?':
+                    poss_directions.append(key)        
+
+            # If poss_directions isn't empty, that is the room we need to move to
+            if len(poss_directions) > 0:
+                print('move to unexplored room')
+                # Add path to the traversal path
+                traversal_path.append(path)
+                # Move the player to that room
+                player.current_room = world.rooms[v]
+                print(f'Moved to: room {player.current_room.id}')
+                # Call the move player function from the new room
+                move_player(player, visited, traversal_graph, traversal_path, world)
+                # End the while loop
+                break
+
+            # If it isn't the target, continue your search
+            # Mark it as visited...
+            visited_bfs.add(v)
+            # Then add A PATH TO its neighbors to the back of the queue
+            for neighbor in get_neighbors(v, world):
+                # Copy the path
+                next_path = path[:]
+                # append the neighbor room to it
+                next_path.append(neighbor)
+                # add the next path to the end of the queue
+                q.enqueue(next_path)
