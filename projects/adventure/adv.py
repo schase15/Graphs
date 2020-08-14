@@ -1,3 +1,50 @@
+# Sprint Challenge Adventure
+#### Best Score is 966 moves ######
+
+'''
+Understand:
+    Graph of 500 rooms
+    Must visit every room at least once - in as few steps as possible
+    Return a list of cardinal directions to walk through the graph
+
+    You are starting in room 0 which the player has the ability to move n,e,s,w to connected rooms
+        Move in one direction, record what room you are now in
+            Move to rooms that room is connected to and record what is n s e and w of it
+    Add all of this information in a dictionary as you traverse
+        {room ID: {'n': ?, 's': ?, 'w': ?, 'e': ?}
+
+    You should pick a direction, traverse depth first recording cardinal information
+    Once you hit a room where every direction has been explored, 
+        use BFS to find the closest unexplored exit (target of a direction with a ?)
+
+    Output needs to be a list of steps taken
+        Record the cardinal direction you moved to get from room to room, not the room ID's
+
+    Move the player by player.travel('n')
+        Will move the player north 1 room , if you can't go that way it will tell you
+        Has attribute self.current_room
+
+    Room class:
+        get_room_in_direction() returns room object in that direction
+        get_exits() returns list of cardinal directions you can move in from that room
+'''
+
+'''
+Plan:
+    Build out a dictionary with each room ID as a key and the value a dictionary of unknown n,e,s,w values
+        As we traverse the graph we will update these values, and use the ? as indicators that direction hasn't been explored
+            If we can't travel in a certain direction, overwrite the ? with a None
+            Otherwise, overwrite the ? with the room ID as you move in that direction
+                Or as you enter a room from that direction
+    As you move, you need to update a few things:
+        1. Add the cardinal direction you are moving to the traversal path list
+            Every time you move even if you are just moving to the next unknown exit to explore
+        2. Add the new room ID to the previous room's cardinal direction dictionary
+            Only if the exit has not been explored before
+        3. When you enter a room, replace any direction you can't move with None
+            Add the information for the direction you just came in
+'''
+
 from room import Room
 from player import Player
 from world import World
@@ -5,9 +52,11 @@ from world import World
 import random
 from ast import literal_eval
 
+# Import helper functions
+from util import *
+
 # Load world
 world = World()
-
 
 # You may uncomment the smaller graphs for development and testing purposes.
 # map_file = "maps/test_line.txt"
@@ -21,75 +70,50 @@ room_graph=literal_eval(open(map_file, "r").read())
 world.load_graph(room_graph)
 
 # Print an ASCII map
-world.print_rooms()
+# world.print_rooms()
 
-player = Player(world.starting_room)
+# Put the program inside a while loop to try to find a route under 960
+# The computer makes a random choice when it decids what direction to move in, the route lengths vary
+traversal_path = [0] * 1000
 
+counter = 0
 
+while len(traversal_path) >= 960:
 
-################################ MY CODE #############################################
+    # Count loops to watch the program run
+    counter += 1
+    print(counter)
 
-# Import helper functions
-from util import *
+    # Instantiate player
+    player = Player(world.starting_room)
 
-# Build an empty graph dictionary
-traversal_graph = {}
-# 500 rooms, 0-499
-for room_id in range(len(world.rooms)):
-    traversal_graph[room_id] = {'n': '?', 's': '?', 'w': '?', 'e': '?'}
+    # Build an empty graph dictionary
+    traversal_graph = {}
 
-# Fill this out with directions to walk
-# traversal_path = ['n', 'n']
-traversal_path = []
+    # Based on the size of the map you are working with
+    for room_id in range(len(world.rooms)):
+        traversal_graph[room_id] = {'n': '?', 's': '?', 'w': '?', 'e': '?'}
 
-# Create empty visited set
-visited = set()
+    # Fill this out with directions to walk
+    # traversal_path = ['n', 'n']
+    traversal_path = []
 
+    # Create empty visited set
+    visited = set()
 
+    # Run my program to populate traversal path
+    move_player(player, visited, traversal_graph, traversal_path, world)
 
-
-## testing functions and traversal ##
-move_player(player, visited, traversal_graph, traversal_path, world)
-
-
-print(traversal_graph)
-print(traversal_path)
-print(len(traversal_path))
-print(visited)
-print(player.current_room.id)
-print('_________________________')
-
-'''
-Everything is working up to here
-It traverses the map and visits every node and populates the traversal graph properly
-    I checked and the output is right for all of the smaller maps
-
-Just need to convert the path from the BFS output to cardinal directions
-'''
-'''
-Plan:
-    Look in the traversal graph to return the dictionary of neighboring rooms
-    return the key that has the value of the next room you are looking for
-'''
-
-# # Path we need to convert
-# path = [4, 3, 0]
-
-# # cardinal directions to traverse that path
-# cardinal_path = []
-
-# for i in range(len(path) -1):
-#     d = traversal_graph[path[i]]
-#     print(d.items())
-
-#     for key, value in d.items():
-#         if value == path[i+1]:
-#             cardinal_path.append(key)
-
-# print(cardinal_path)
+print('_______________________________________________')
+print('DONE!')
+print(f"Length of Traversal Path: {len(traversal_path)}")
+print(f"Traversal Path is: {traversal_path}")
 
 
-############################# TESTING ################################################
+print("______________________________________")
+print('Start of test')
+
+############################ TESTING ################################################
 
 # TRAVERSAL TEST
 visited_rooms = set()
@@ -105,7 +129,6 @@ if len(visited_rooms) == len(room_graph):
 else:
     print("TESTS FAILED: INCOMPLETE TRAVERSAL")
     print(f"{len(room_graph) - len(visited_rooms)} unvisited rooms")
-
 
 
 # #######

@@ -1,20 +1,17 @@
 # Page to store to functions I made to call in the adv.py page
 
-###### UPDATE THE FUNCTIONS TO READ GLOBAL VARIABLES ##########
-    # So you don't have to pass in all the variables, you can just call it
-
 # Function will be called when the player enters a new room
 # This will quickly identify directions it cannot travel
 def update_poss_directions(player, traversal_graph):
     '''
-    Pass in player
+    Pass in player, traversal_graph
     Update directions for that room - 
         If there is no exit in a certain direction, store None in that room's traversal graph
     Return nothing
     '''
     # Store current room ID
     room_value = player.current_room.id
-    # Get exits
+    # Get exits for that room
     exits = player.current_room.get_exits()
 
     # For each cardinal direction
@@ -26,10 +23,9 @@ def update_poss_directions(player, traversal_graph):
 
 
 # Function will be called to move the player
-# NEED TO UPDATE TO INCLUDE A BREAK THAT WILL CALL BFS WHEN WE THERE ARE NO UNEXPLORED EXITS
 def move_player(player, visited, traversal_graph, traversal_path, world):
     '''
-    Pass in player
+    Pass in player, visited, traversal_graph, traversal_path, world
     Check to see if the new room has been visited
         If it hasn't call the update_poss_directions function
         Add it to the visited set
@@ -40,9 +36,9 @@ def move_player(player, visited, traversal_graph, traversal_path, world):
                 Both for the room that the player is leaving and for the 
                 room that the player is entering
             Add the movement to the traversal path
-        If there are not
-            Call BFS
+        If there are no more unexplored exits - Call BFS
     '''
+    import random
 
     # Save current room ID
     curr_id = player.current_room.id
@@ -66,12 +62,12 @@ def move_player(player, visited, traversal_graph, traversal_path, world):
     # If there aren't, call BFS
     if len(poss_directions) == 0:
         # Call BFS
-        print('No where to go')
+        # print('No where to go')
         return bfs(player, visited, traversal_graph, traversal_path, world)
     
     else:
         # Save direction choice
-        move_to = poss_directions[0]
+        move_to = random.choice(poss_directions)
 
         # Set connection you are moving to before moving
         traversal_graph[curr_id][move_to] = player.current_room.get_room_in_direction(move_to).id
@@ -98,8 +94,10 @@ def move_player(player, visited, traversal_graph, traversal_path, world):
         move_player(player, visited, traversal_graph, traversal_path, world)
 
 # To be used in BFS function
-# Note: This Queue class is sub-optimal. Why?
 class Queue():
+    '''
+    Basic queue, first in first out operation for breadth first searching
+    '''
     def __init__(self):
         self.queue = []
     def enqueue(self, value):
@@ -116,28 +114,28 @@ class Queue():
 def get_neighbors(room_id, world):
     '''
     Takes in one room_id
-    Returns neighbors room_id
+    Returns neighbors room_ids
         Neighbors are the rooms connected in each cardinal direction
     '''
     # Empty neighbors list
     neighbors = []
-    # Grab the room 
+    # Grab the current room 
     current_room = world.rooms[room_id]
-    # Grab exits
+    # Grab the exits
     exits = current_room.get_exits()
     # Grab room_id's in each direction and add to neighbors list
     for direction in exits:
         neighbors.append(current_room.get_room_in_direction(direction).id)
-    
+    # Return room id's of the neighbors
     return neighbors
 
-# Function to find the closest room with an enxplored exit
+# Function to find the closest room with an unexplored exit
 def bfs(player, visited, traversal_graph, traversal_path, world):
     '''
-    Takes in all variables (update to use global variables)
+    Takes in all variables
     Finds the closest room with an unexplored exit
         Moves the player there
-        Adds the path to get there to the traversal path
+        Adds the cardinal directions to get there to the traversal path
     Calls the move_player function at the end to explore the new unexplored exit
     '''
     # Starting point is the dead-end room the player is currently in
@@ -168,20 +166,18 @@ def bfs(player, visited, traversal_graph, traversal_path, world):
 
             # If poss_directions isn't empty, that is the room we need to move to
             if len(poss_directions) > 0:
-                print('move to unexplored room')
+                # print('move to unexplored room')
 
-
-                # Add path to the traversal path
-                # traversal_path.append(path)
+                # Convert path to cardinal directions
                 cardinal_dir = convert_to_cardinal(path, traversal_graph)
 
-                # append cardinal directions to traversal_path
+                # Append cardinal directions to traversal_path
                 for item in cardinal_dir:
                     traversal_path.append(item)
 
                 # Move the player to that room
                 player.current_room = world.rooms[v]
-                print(f'Moved to: room {player.current_room.id}')
+                # print(f'Moved to: room {player.current_room.id}')
                 # Call the move player function from the new room
                 move_player(player, visited, traversal_graph, traversal_path, world)
                 # End the while loop
@@ -199,19 +195,22 @@ def bfs(player, visited, traversal_graph, traversal_path, world):
                 # add the next path to the end of the queue
                 q.enqueue(next_path)
 
+# Helper function to convert the output of the BFS to cardinal directions
 def convert_to_cardinal(path, traversal_graph):
+    '''
+    Takes in a list of room id's (integers)
+    Returns a list of the cardinal directions needed to travel that path
+    '''
     cardinal_path = []
-
+    # Comparing two rooms in the list, so for range -1 of the length of the path list
     for i in range(len(path) -1):
+        # For each room in the path in order
         d = traversal_graph[path[i]]
 
         for key, value in d.items():
+            # Find the next room id value in the first room's connections
             if value == path[i+1]:
+                # The key will be the direction to that next connected room
                 cardinal_path.append(key)
 
     return cardinal_path
-
-
-
-
-
